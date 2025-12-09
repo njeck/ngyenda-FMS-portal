@@ -4,27 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ngyenda FMS | Secure Portal</title>
+    
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/brain.png">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <style>
-        /* Resets to make the iframe fill the screen perfectly */
+        /* --- CORE SETUP --- */
         body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            width: 100%; 
+            margin: 0; padding: 0; 
+            height: 100%; width: 100%; 
             overflow: hidden; 
-            background-color: #050509; /* Matches your dashboard background */
+            background-color: #050509; 
+            font-family: 'Courier New', Courier, monospace;
         }
+
+        /* --- THE APP IFRAME (Hidden initially) --- */
         iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
-            display: block; /* Removes tiny scrollbars */
+            width: 100%; height: 100%; 
+            border: none; display: block; 
+            opacity: 0; /* Hidden until loaded */
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        /* --- AI LOADER SCREEN --- */
+        #cortex-loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #050509;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #050509 60%);
+        }
+
+        /* Brain Container */
+        .brain-container {
+            position: relative;
+            width: 80px; height: 80px;
+            margin-bottom: 20px;
+        }
+
+        /* The Brain Icon */
+        .brain-icon {
+            font-size: 80px;
+            color: #6366F1; /* Indigo */
+            filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.6));
+            animation: pulse-brain 2s infinite ease-in-out;
+        }
+
+        /* Scanning Laser */
+        .scan-line {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: #10B981; /* Emerald */
+            box-shadow: 0 0 10px #10B981;
+            animation: scan 2s infinite linear;
+            opacity: 0.8;
+        }
+
+        /* Text Effects */
+        .loader-text {
+            color: #E2E8F0;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            background-color: #10B981;
+            border-radius: 50%;
+            animation: blink 0.5s infinite;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes pulse-brain {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.9)); }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* Fade Out Class */
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-out;
         }
     </style>
 </head>
 <body>
-    <iframe src="https://script.google.com/macros/s/AKfycbwLM9930U5sKlu2D8Ual17ZNPUGKVB0G9rYlvomGTorCJjPGSItvUXQx-TtaMNwxSbU/exec">
+
+    <div id="cortex-loader">
+        <div class="brain-container">
+            <i class="ph-fill ph-brain brain-icon"></i>
+            <div class="scan-line"></div>
+        </div>
+        <div class="loader-text">
+            <div class="status-dot"></div>
+            <span id="loading-msg">INITIALIZING SECURE LINK...</span>
+        </div>
+    </div>
+
+    <iframe id="main-app" 
+        src="https://script.google.com/macros/s/AKfycbwLM9930U5sKlu2D8Ual17ZNPUGKVB0G9rYlvomGTorCJjPGSItvUXQx-TtaMNwxSbU/exec" 
+        onload="appLoaded()">
         <p>Your browser does not support iframes.</p>
     </iframe>
+
+    <script>
+        // Typing Effect Messages
+        const messages = [
+            "CONNECTING TO NGYENDA DB...",
+            "ENCRYPTING DATA STREAM...",
+            "LOADING CORTEX AI MODEL...",
+            "ACCESS GRANTED."
+        ];
+        
+        let msgIndex = 0;
+        const msgElement = document.getElementById('loading-msg');
+
+        // Cycle through messages every 800ms
+        const msgInterval = setInterval(() => {
+            msgIndex = (msgIndex + 1) % messages.length;
+            msgElement.innerText = messages[msgIndex];
+        }, 800);
+
+        // Function to run when Iframe loads
+        function appLoaded() {
+            // Wait 1 extra second for dramatic effect, then fade out
+            setTimeout(() => {
+                clearInterval(msgInterval);
+                document.getElementById('loading-msg').innerText = "SYSTEM ONLINE";
+                document.querySelector('.status-dot').style.backgroundColor = "#6366F1"; // Turn Blue
+                
+                // Hide Loader
+                setTimeout(() => {
+                    document.getElementById('cortex-loader').classList.add('fade-out');
+                    document.getElementById('main-app').style.opacity = '1';
+                }, 500);
+                
+                // Remove loader from DOM after transition
+                setTimeout(() => {
+                    document.getElementById('cortex-loader').style.display = 'none';
+                }, 1500);
+            }, 1000);
+        }
+
+        // Fallback: If Google is slow, force load after 5 seconds
+        setTimeout(appLoaded, 5000);
+    </script>
+
 </body>
 </html>
